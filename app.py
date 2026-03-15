@@ -1,17 +1,18 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import random
+from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="AI IT Monitor", layout="wide")
 
 st.title("AI Infrastructure Monitoring Dashboard")
-
 st.write("Machine Learning prototype for predictive IT incident detection")
 
 # -------------------------
-# Dataset de entrenamiento
+# DATASET DE ENTRENAMIENTO
 # -------------------------
 
 data = {
@@ -27,11 +28,11 @@ df = pd.DataFrame(data)
 X = df[["cpu","ram","network","processes"]]
 y = df["incident"]
 
-model = RandomForestClassifier()
+model = RandomForestClassifier(random_state=42)
 model.fit(X,y)
 
 # -------------------------
-# Sidebar controles
+# SIDEBAR CONTROLES
 # -------------------------
 
 st.sidebar.header("System Metrics")
@@ -49,14 +50,14 @@ input_data = pd.DataFrame({
 })
 
 # -------------------------
-# Predicción IA
+# PREDICCIÓN IA
 # -------------------------
 
 prediction = model.predict(input_data)
 probability = model.predict_proba(input_data)
 
 # -------------------------
-# Métricas principales
+# MÉTRICAS
 # -------------------------
 
 col1,col2,col3,col4 = st.columns(4)
@@ -69,27 +70,32 @@ col4.metric("Processes",processes)
 st.divider()
 
 # -------------------------
-# Resultado de IA
+# RESULTADO IA
 # -------------------------
 
 st.subheader("Incident Risk Analysis")
 
+risk = probability[0][1] * 100
+
+st.progress(int(risk))
+st.write(f"Risk Score: {risk:.1f}%")
+
 if prediction[0] == 1:
-    st.error(f"⚠ High Incident Risk ({probability[0][1]*100:.1f}%)")
+    st.error(f"⚠ High Incident Risk ({risk:.1f}%)")
 else:
-    st.success(f"System Stable ({probability[0][0]*100:.1f}%)")
+    st.success("System Stable")
 
 # -------------------------
-# Historial simulado
+# HISTORIAL SIMULADO
 # -------------------------
 
 st.subheader("System Metrics History")
 
 time = np.arange(0,20)
 
-cpu_history = np.random.normal(cpu,5,20)
-ram_history = np.random.normal(ram,5,20)
-network_history = np.random.normal(network,5,20)
+cpu_history = np.clip(np.random.normal(cpu,5,20),0,100)
+ram_history = np.clip(np.random.normal(ram,5,20),0,100)
+network_history = np.clip(np.random.normal(network,5,20),0,100)
 
 history_df = pd.DataFrame({
     "time":time,
@@ -101,7 +107,7 @@ history_df = pd.DataFrame({
 st.line_chart(history_df.set_index("time"))
 
 # -------------------------
-# Grafica actual
+# GRAFICA DE CARGA
 # -------------------------
 
 st.subheader("Current System Load")
@@ -119,14 +125,8 @@ ax.set_title("Current Infrastructure Load")
 st.pyplot(fig)
 
 # -------------------------
-# Dataset entrenamiento
+# EVENT LOG
 # -------------------------
-
-with st.expander("Training Dataset Used by ML Model"):
-    st.dataframe(df)
-
-import random
-from datetime import datetime
 
 st.subheader("🚨 Incident Event Log")
 
@@ -140,10 +140,14 @@ events = [
     "Service response delay detected"
 ]
 
-# generar eventos simulados
+num_events = 5
+
+if prediction[0] == 1:
+    num_events = 8
+
 event_log = []
 
-for i in range(5):
+for i in range(num_events):
     event = random.choice(events)
     timestamp = datetime.now().strftime("%H:%M:%S")
     
@@ -155,3 +159,10 @@ for i in range(5):
 log_df = pd.DataFrame(event_log)
 
 st.table(log_df)
+
+# -------------------------
+# DATASET
+# -------------------------
+
+with st.expander("Training Dataset Used by ML Model"):
+    st.dataframe(df)
