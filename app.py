@@ -130,7 +130,7 @@ st.pyplot(fig)
 
 st.subheader(" Registro de Eventos de Incidente")
 
-eventos = [
+events = [
     "Pico alto de CPU detectado",
     "Anomalía en la red detectada",
     "Intento de acceso no autorizado",
