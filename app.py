@@ -166,3 +166,4 @@ st.table(log_df)
 
 with st.expander("Training Dataset Used by ML Model"):
     st.dataframe(df)
+    
