@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="AI IT Monitor", layout="wide")
 
-st.title("AI Infrastructure Monitoring Dashboard")
-st.write("Machine Learning prototype for predictive IT incident detection")
+st.title("Dashboard de monitoreo de infraestructura con IA")
+st.write(" Prototipo de Machine Learning para detección predictiva de incidentes IT")
 
 # -------------------------
 # DATASET DE ENTRENAMIENTO
@@ -35,12 +35,12 @@ model.fit(X,y)
 # SIDEBAR CONTROLES
 # -------------------------
 
-st.sidebar.header("System Metrics")
+st.sidebar.header("Metricas del Sistema")
 
-cpu = st.sidebar.slider("CPU Usage %",0,100,60)
-ram = st.sidebar.slider("RAM Usage %",0,100,55)
-network = st.sidebar.slider("Network Load %",0,100,50)
-processes = st.sidebar.slider("Active Processes",50,300,150)
+cpu = st.sidebar.slider("Uso de CPU  %",0,100,60)
+ram = st.sidebar.slider("Uso de RAM %",0,100,55)
+network = st.sidebar.slider("Carga de Red %",0,100,50)
+processes = st.sidebar.slider("Procesos Activos",50,300,150)
 
 input_data = pd.DataFrame({
     "cpu":[cpu],
@@ -62,10 +62,10 @@ probability = model.predict_proba(input_data)
 
 col1,col2,col3,col4 = st.columns(4)
 
-col1.metric("CPU Usage",f"{cpu}%")
-col2.metric("RAM Usage",f"{ram}%")
-col3.metric("Network Load",f"{network}%")
-col4.metric("Processes",processes)
+col1.metric("Uso de CPU",f"{cpu}%")
+col2.metric("Uso de RAM",f"{ram}%")
+col3.metric("Carga de Red",f"{network}%")
+col4.metric("Procesos Activos",processes)
 
 st.divider()
 
@@ -73,23 +73,23 @@ st.divider()
 # RESULTADO IA
 # -------------------------
 
-st.subheader("Incident Risk Analysis")
+st.subheader("Analisis de incidentes de riesgo")
 
 risk = probability[0][1] * 100
 
 st.progress(int(risk))
-st.write(f"Risk Score: {risk:.1f}%")
+st.write(f"Score de Riesgo: {risk:.1f}%")
 
 if prediction[0] == 1:
-    st.error(f"⚠ High Incident Risk ({risk:.1f}%)")
+    st.error(f"⚠ Incidente de alto riesgo ({risk:.1f}%)")
 else:
-    st.success("System Stable")
+    st.success("Sistema Estable (Bajo riesgo)")
 
 # -------------------------
 # HISTORIAL SIMULADO
 # -------------------------
 
-st.subheader("System Metrics History")
+st.subheader("Historial de Métricas del Sistema")
 
 time = np.arange(0,20)
 
@@ -98,29 +98,29 @@ ram_history = np.clip(np.random.normal(ram,5,20),0,100)
 network_history = np.clip(np.random.normal(network,5,20),0,100)
 
 history_df = pd.DataFrame({
-    "time":time,
+    "Tiempo":time,
     "CPU":cpu_history,
     "RAM":ram_history,
-    "Network":network_history
+    "Red":network_history
 })
 
-st.line_chart(history_df.set_index("time"))
+st.line_chart(history_df.set_index("Tiempo"))
 
 # -------------------------
 # GRAFICA DE CARGA
 # -------------------------
 
-st.subheader("Current System Load")
+st.subheader("Carga Actual del Sistema")
 
-labels = ["CPU","RAM","Network"]
+labels = ["CPU","RAM","Red"]
 values = [cpu,ram,network]
 
 fig, ax = plt.subplots()
 
 ax.bar(labels,values)
 
-ax.set_ylabel("Usage %")
-ax.set_title("Current Infrastructure Load")
+ax.set_ylabel("Uso %")
+ax.set_title("Carga de Infraestructura Actual")
 
 st.pyplot(fig)
 
@@ -128,16 +128,16 @@ st.pyplot(fig)
 # EVENT LOG
 # -------------------------
 
-st.subheader("🚨 Incident Event Log")
+st.subheader(" Registro de Eventos de Incidente")
 
-events = [
-    "High CPU spike detected",
-    "Network anomaly detected",
-    "Unauthorized access attempt",
-    "Server overheating",
-    "Memory usage critical",
-    "Disk I/O spike detected",
-    "Service response delay detected"
+eventos = [
+    "Pico alto de CPU detectado",
+    "Anomalía en la red detectada",
+    "Intento de acceso no autorizado",
+    "Sobrecalentamiento del servidor",
+    "Uso de memoria crítico",
+    "Pico de E/S de disco detectado",
+    "Retraso en la respuesta del servicio detectado"
 ]
 
 num_events = 5
@@ -152,8 +152,8 @@ for i in range(num_events):
     timestamp = datetime.now().strftime("%H:%M:%S")
     
     event_log.append({
-        "Time":timestamp,
-        "Event":event
+        "Tiempo":timestamp,
+        "Evento":event
     })
 
 log_df = pd.DataFrame(event_log)
@@ -164,6 +164,5 @@ st.table(log_df)
 # DATASET
 # -------------------------
 
-with st.expander("Training Dataset Used by ML Model"):
+with st.expander("Dataset de Entrenamiento Utilizado por el Modelo ML"):
     st.dataframe(df)
-    
