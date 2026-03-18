@@ -3,24 +3,24 @@ import pandas as pd
 import numpy as np
 import random
 from datetime import datetime
-from sklearn.ensemble import RandomForestClassifier
+import psutil
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="AI IT Monitor", layout="wide")
+st.set_page_config(page_title="AI IT Monitor PRO", layout="wide")
 
-st.title("Dashboard de monitoreo de infraestructura con IA")
-st.write(" Prototipo de Machine Learning para detección predictiva de incidentes IT")
+st.title("🚀 Sistema Inteligente de Monitoreo de Infraestructura TI")
 
 # -------------------------
-# DATASET DE ENTRENAMIENTO
+# DATASET
 # -------------------------
 
 data = {
-    "cpu":[90,85,70,30,20,95,60,40,88,92,55,45],
-    "ram":[88,80,75,40,30,90,65,35,82,87,50,42],
-    "network":[80,75,60,20,10,85,55,30,78,81,40,33],
-    "processes":[220,210,180,90,70,240,150,110,200,215,120,100],
-    "incident":[1,1,1,0,0,1,0,0,1,1,0,0]
+    "cpu":[90,85,70,30,20,95,60,40,88,92,55,45,78,82,67,73],
+    "ram":[88,80,75,40,30,90,65,35,82,87,50,42,70,76,60,68],
+    "network":[80,75,60,20,10,85,55,30,78,81,40,33,65,70,50,58],
+    "processes":[220,210,180,90,70,240,150,110,200,215,120,100,170,185,140,160],
+    "incident":[1,1,1,0,0,1,0,0,1,1,0,0,1,1,0,0]
 }
 
 df = pd.DataFrame(data)
@@ -28,19 +28,49 @@ df = pd.DataFrame(data)
 X = df[["cpu","ram","network","processes"]]
 y = df["incident"]
 
-model = RandomForestClassifier(random_state=42)
-model.fit(X,y)
+rf = RandomForestClassifier(random_state=42)
+gb = GradientBoostingClassifier()
+
+rf.fit(X,y)
+gb.fit(X,y)
 
 # -------------------------
-# SIDEBAR CONTROLES
+# SIDEBAR
 # -------------------------
 
-st.sidebar.header("Metricas del Sistema")
+st.sidebar.header("⚙️ Configuración")
 
-cpu = st.sidebar.slider("Uso de CPU  %",0,100,60)
-ram = st.sidebar.slider("Uso de RAM %",0,100,55)
-network = st.sidebar.slider("Carga de Red %",0,100,50)
-processes = st.sidebar.slider("Procesos Activos",50,300,150)
+modo = st.sidebar.selectbox("Modo de datos", ["Simulado","Tiempo Real"])
+modelo = st.sidebar.selectbox("Modelo IA", ["Random Forest","Gradient Boosting"])
+
+servers = ["Server A","Server B","Server C"]
+server = st.sidebar.selectbox("Servidor", servers)
+
+# BOTÓN ACTUALIZAR
+if st.sidebar.button("🔄 Actualizar datos"):
+    st.sidebar.success("Datos actualizados")
+    st.rerun()
+
+# -------------------------
+# INPUTS
+# -------------------------
+
+if modo == "Simulado":
+    cpu = st.sidebar.slider("CPU %",0,100,60)
+    ram = st.sidebar.slider("RAM %",0,100,55)
+    network = st.sidebar.slider("Red %",0,100,50)
+    processes = st.sidebar.slider("Procesos",50,300,150)
+
+else:
+    cpu = psutil.cpu_percent(interval=1)
+    ram = psutil.virtual_memory().percent
+    processes = len(psutil.pids())
+    network = np.random.randint(20,80)
+    st.sidebar.success("📡 Datos en tiempo real")
+
+# variación leve por servidor
+cpu += random.randint(-5,5)
+ram += random.randint(-5,5)
 
 input_data = pd.DataFrame({
     "cpu":[cpu],
@@ -50,11 +80,16 @@ input_data = pd.DataFrame({
 })
 
 # -------------------------
-# PREDICCIÓN IA
+# MODELO
 # -------------------------
 
+model = rf if modelo == "Random Forest" else gb
+
 prediction = model.predict(input_data)
-probability = model.predict_proba(input_data)
+prob = model.predict_proba(input_data)
+
+risk = prob[0][1]*100
+future_risk = risk + np.random.randint(-5,10)
 
 # -------------------------
 # MÉTRICAS
@@ -62,107 +97,108 @@ probability = model.predict_proba(input_data)
 
 col1,col2,col3,col4 = st.columns(4)
 
-col1.metric("Uso de CPU",f"{cpu}%")
-col2.metric("Uso de RAM",f"{ram}%")
-col3.metric("Carga de Red",f"{network}%")
-col4.metric("Procesos Activos",processes)
+col1.metric("CPU",f"{cpu:.1f}%")
+col2.metric("RAM",f"{ram:.1f}%")
+col3.metric("Red",f"{network:.1f}%")
+col4.metric("Procesos",processes)
 
 st.divider()
 
 # -------------------------
-# RESULTADO IA
+# RIESGO
 # -------------------------
 
-st.subheader("Analisis de incidentes de riesgo")
-
-risk = probability[0][1] * 100
+st.subheader("🧠 Análisis Inteligente")
 
 st.progress(int(risk))
-st.write(f"Score de Riesgo: {risk:.1f}%")
+st.write(f"Riesgo actual: {risk:.1f}%")
+st.write(f"Predicción futura: {future_risk:.1f}%")
 
-if prediction[0] == 1:
-    st.error(f"⚠ Incidente de alto riesgo ({risk:.1f}%)")
+# SEMÁFORO
+
+if risk > 70:
+    st.markdown("## 🔴 CRÍTICO")
+    st.error("Fallo inminente detectado")
+elif risk > 50:
+    st.markdown("## 🟠 MEDIO")
+    st.warning("Riesgo elevado")
 else:
-    st.success("Sistema Estable (Bajo riesgo)")
+    st.markdown("## 🟢 ESTABLE")
+    st.success("Sistema estable")
 
 # -------------------------
-# HISTORIAL SIMULADO
+# RECOMENDACIONES
 # -------------------------
 
-st.subheader("Historial de Métricas del Sistema")
+st.subheader("🛠 Recomendaciones")
 
-time = np.arange(0,20)
+if cpu > 85:
+    st.write("• Reducir carga de CPU")
+if ram > 80:
+    st.write("• Optimizar memoria RAM")
+if network > 75:
+    st.write("• Revisar tráfico de red")
+if risk < 50:
+    st.write("• Sistema funcionando correctamente")
 
-cpu_history = np.clip(np.random.normal(cpu,5,20),0,100)
-ram_history = np.clip(np.random.normal(ram,5,20),0,100)
-network_history = np.clip(np.random.normal(network,5,20),0,100)
+# -------------------------
+# HISTORIAL
+# -------------------------
 
-history_df = pd.DataFrame({
+st.subheader("📊 Historial")
+
+time = np.arange(20)
+
+cpu_hist = np.clip(np.random.normal(cpu,5,20),0,100)
+ram_hist = np.clip(np.random.normal(ram,5,20),0,100)
+net_hist = np.clip(np.random.normal(network,5,20),0,100)
+
+hist = pd.DataFrame({
     "Tiempo":time,
-    "CPU":cpu_history,
-    "RAM":ram_history,
-    "Red":network_history
+    "CPU":cpu_hist,
+    "RAM":ram_hist,
+    "Red":net_hist
 })
 
-st.line_chart(history_df.set_index("Tiempo"))
+st.line_chart(hist.set_index("Tiempo"))
 
 # -------------------------
-# GRAFICA DE CARGA
+# EVENTOS
 # -------------------------
 
-st.subheader("Carga Actual del Sistema")
-
-labels = ["CPU","RAM","Red"]
-values = [cpu,ram,network]
-
-fig, ax = plt.subplots()
-
-ax.bar(labels,values)
-
-ax.set_ylabel("Uso %")
-ax.set_title("Carga de Infraestructura Actual")
-
-st.pyplot(fig)
-
-# -------------------------
-# EVENT LOG
-# -------------------------
-
-st.subheader(" Registro de Eventos de Incidente")
+st.subheader("📋 Eventos del Sistema")
 
 events = [
-    "Pico alto de CPU detectado",
-    "Anomalía en la red detectada",
-    "Intento de acceso no autorizado",
-    "Sobrecalentamiento del servidor",
-    "Uso de memoria crítico",
-    "Pico de E/S de disco detectado",
-    "Retraso en la respuesta del servicio detectado"
+    "CPU alta",
+    "Anomalía de red",
+    "Acceso sospechoso",
+    "Sobrecalentamiento",
+    "Memoria crítica"
 ]
 
-num_events = 5
+num = 5 if risk < 50 else 8
 
-if prediction[0] == 1:
-    num_events = 8
+log = []
 
-event_log = []
-
-for i in range(num_events):
-    event = random.choice(events)
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    
-    event_log.append({
-        "Tiempo":timestamp,
-        "Evento":event
+for i in range(num):
+    log.append({
+        "Hora": datetime.now().strftime("%H:%M:%S"),
+        "Evento": random.choice(events)
     })
 
-log_df = pd.DataFrame(event_log)
+st.dataframe(pd.DataFrame(log), use_container_width=True)
 
-st.table(log_df)
+# -------------------------
+# INFO MODELO
+# -------------------------
+
+with st.expander("ℹ️ Información del modelo"):
+    st.write("Modelo seleccionado:", modelo)
+    st.write("Variables utilizadas: CPU, RAM, Red, Procesos")
 
 # -------------------------
 # DATASET
 # -------------------------
 
-with st.expander("Dataset de Entrenamiento Utilizado por el Modelo ML"):
+with st.expander("📂 Dataset de entrenamiento"):
     st.dataframe(df)
